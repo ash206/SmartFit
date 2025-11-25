@@ -226,13 +226,33 @@ fun RegisterScreen(navController: NavController, viewModel: SmartFitViewModel) {
 
         Button(
             onClick = {
-                // 4. Validation Logic
-                if (!email.contains("@")) {
+
+                var emptyCount = 0
+                if (name.isBlank()) emptyCount++
+                if (email.isBlank()) emptyCount++
+                if (password.isBlank()) emptyCount++
+
+                if (emptyCount == 3) {
+                    errorMessage = "All fields are required!" // 3个都空
+                }
+                else if (emptyCount == 2) {
+                    errorMessage = "Please fill in the two missing fields!" // 你的新需求：2个空
+                }
+                else if (emptyCount == 1) {
+
+                    if (name.isBlank()) errorMessage = "Full name is required!"
+                    else if (email.isBlank()) errorMessage = "Email is required!"
+                    else errorMessage = "Password is required!"
+                }
+
+                else if (!email.contains("@")) {
                     errorMessage = "Invalid Email Format"
-                } else if (password.length < 8) {
+                }
+                else if (password.length < 8) {
                     errorMessage = "Password must be at least 8 characters"
-                } else {
-                    // 3. Save Name to ViewModel so it appears in Profile
+                }
+                else {
+                    errorMessage = null
                     viewModel.saveUserProfile(name, "", "", "")
                     navController.navigate("home") { popUpTo("login") { inclusive = true } }
                 }
