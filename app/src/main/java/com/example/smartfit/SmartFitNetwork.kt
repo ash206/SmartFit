@@ -1,5 +1,6 @@
 package com.example.smartfit
 
+import com.google.gson.annotations.SerializedName
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
@@ -7,20 +8,24 @@ import retrofit2.http.GET
 // --- RETROFIT (API) ---
 
 data class FitnessTip(
-    val id: Int,
-    val quote: String,
+    // The new API returns "_id" as a String, not "id" as Int
+    @SerializedName("_id") val id: String,
+
+    // The new API calls the text "content", so we map it to your existing "quote" variable
+    @SerializedName("content") val quote: String,
+
     val author: String
 )
 
-// We will use a dummy JSON API for demonstration
-// Base URL: https://dummyjson.com/
+// We switch to Quotable.io which supports tags like 'sports' and 'health'
 interface ApiService {
-    @GET("quotes/random")
+    @GET("random?tags=sports,health")
     suspend fun getRandomQuote(): FitnessTip
 }
 
 object RetrofitClient {
-    private const val BASE_URL = "https://dummyjson.com/"
+    // Update the Base URL
+    private const val BASE_URL = "https://api.quotable.io/"
 
     val api: ApiService by lazy {
         Retrofit.Builder()

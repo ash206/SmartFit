@@ -269,7 +269,16 @@ class SmartFitViewModel(application: Application) : AndroidViewModel(application
     }
 
     fun fetchTip() {
-        _fitnessTip.value = tipsList.random()
+        viewModelScope.launch {
+            try {
+                // Call the API defined in SmartFitNetwork.kt
+                val response = RetrofitClient.api.getRandomQuote()
+                _fitnessTip.value = "\"${response.quote}\" - ${response.author}"
+            } catch (e: Exception) {
+                // Fallback to local list if API fails (e.g. no internet)
+                _fitnessTip.value = tipsList.random()
+            }
+        }
     }
 
     fun saveUserProfile(name: String, weight: String, height: String, age: String) {
