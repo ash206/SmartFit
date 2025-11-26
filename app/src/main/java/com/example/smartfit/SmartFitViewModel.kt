@@ -14,6 +14,14 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.util.Calendar
 
+// Data class to hold separated stats
+data class SummaryStats(
+    val steps: Int = 0,
+    val caloriesBurned: Int = 0,
+    val caloriesIntake: Int = 0,
+    val workouts: Int = 0
+)
+
 class SmartFitViewModel(application: Application) : AndroidViewModel(application) {
 
     private val db = AppDatabase.getDatabase(application)
@@ -40,11 +48,15 @@ class SmartFitViewModel(application: Application) : AndroidViewModel(application
         val todayLogs = logs.filter { it.date in startOfDay until endOfDay }
 
         val steps = todayLogs.filter { it.type == "steps" }.sumOf { it.value }
-        val calories = todayLogs.sumOf { it.calories }
+
+        // Split Calories
+        val burned = todayLogs.filter { it.type == "steps" || it.type == "workout" }.sumOf { it.calories }
+        val intake = todayLogs.filter { it.type == "food" }.sumOf { it.calories }
+
         val workouts = todayLogs.count { it.type == "workout" }
 
-        Triple(steps, calories, workouts)
-    }.stateIn(viewModelScope, SharingStarted.Lazily, Triple(0, 0, 0))
+        SummaryStats(steps, burned, intake, workouts)
+    }.stateIn(viewModelScope, SharingStarted.Lazily, SummaryStats())
 
     // Weekly Summary (Last 7 Days)
     val weeklySummary = activities.map { logs ->
@@ -55,11 +67,15 @@ class SmartFitViewModel(application: Application) : AndroidViewModel(application
         val weeklyLogs = logs.filter { it.date >= sevenDaysAgo }
 
         val steps = weeklyLogs.filter { it.type == "steps" }.sumOf { it.value }
-        val calories = weeklyLogs.sumOf { it.calories }
+
+        // Split Calories
+        val burned = weeklyLogs.filter { it.type == "steps" || it.type == "workout" }.sumOf { it.calories }
+        val intake = weeklyLogs.filter { it.type == "food" }.sumOf { it.calories }
+
         val workouts = weeklyLogs.count { it.type == "workout" }
 
-        Triple(steps, calories, workouts)
-    }.stateIn(viewModelScope, SharingStarted.Lazily, Triple(0, 0, 0))
+        SummaryStats(steps, burned, intake, workouts)
+    }.stateIn(viewModelScope, SharingStarted.Lazily, SummaryStats())
 
 
     // 2. Dark Mode
@@ -71,10 +87,13 @@ class SmartFitViewModel(application: Application) : AndroidViewModel(application
     private val WEIGHT_KEY = stringPreferencesKey("weight")
     private val HEIGHT_KEY = stringPreferencesKey("height")
     private val AGE_KEY = stringPreferencesKey("age")
-    private val STEP_GOAL_KEY = stringPreferencesKey("step_goal")
-    private val CALORIE_GOAL_KEY = stringPreferencesKey("calorie_goal")
     private val EMAIL_KEY = stringPreferencesKey("user_email")
     private val PASSWORD_KEY = stringPreferencesKey("user_password")
+
+    // Goals
+    private val STEP_GOAL_KEY = stringPreferencesKey("step_goal")
+    private val CALORIE_INTAKE_GOAL_KEY = stringPreferencesKey("calorie_goal") // Existing key usually implies Intake (2000)
+    private val CALORIE_BURN_GOAL_KEY = stringPreferencesKey("calorie_burn_goal") // New key for burning
 
     val userEmail = context.dataStore.data.map { it[EMAIL_KEY] ?: "" }
         .stateIn(viewModelScope, SharingStarted.Lazily, "")
@@ -97,8 +116,11 @@ class SmartFitViewModel(application: Application) : AndroidViewModel(application
     val stepGoal = context.dataStore.data.map { it[STEP_GOAL_KEY] ?: "10000" }
         .stateIn(viewModelScope, SharingStarted.Lazily, "10000")
 
-    val calorieGoal = context.dataStore.data.map { it[CALORIE_GOAL_KEY] ?: "2000" }
+    val calorieIntakeGoal = context.dataStore.data.map { it[CALORIE_INTAKE_GOAL_KEY] ?: "2000" }
         .stateIn(viewModelScope, SharingStarted.Lazily, "2000")
+
+    val calorieBurnGoal = context.dataStore.data.map { it[CALORIE_BURN_GOAL_KEY] ?: "500" }
+        .stateIn(viewModelScope, SharingStarted.Lazily, "500")
 
     // 4. Fitness Tips Logic
     private val _fitnessTip = MutableStateFlow("Loading tip...")
@@ -141,10 +163,8 @@ class SmartFitViewModel(application: Application) : AndroidViewModel(application
         return dao.getActivityById(id)
     }
 
-    // 更新：需要传入 notes 来判断运动类型
     fun addActivity(type: String, value: Int, notes: String, date: Long = System.currentTimeMillis()) {
         viewModelScope.launch {
-            // 1. 计算卡路里 (传入 notes)
             val cals = calculateCalories(type, value, notes)
             val log = ActivityLog(
                 type = type,
@@ -159,7 +179,6 @@ class SmartFitViewModel(application: Application) : AndroidViewModel(application
 
     fun updateActivity(id: Int, type: String, value: Int, notes: String, date: Long) {
         viewModelScope.launch {
-            // 1. 计算卡路里 (传入 notes)
             val cals = calculateCalories(type, value, notes)
             val log = ActivityLog(
                 id = id,
@@ -179,51 +198,38 @@ class SmartFitViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-    // --- 核心逻辑：根据用户体重/身高/运动类型计算卡路里 ---
+    // --- Calculation Logic ---
     private fun calculateCalories(type: String, value: Int, notes: String): Int {
-        // 获取当前的体重和身高 (StateFlow 的最新值)
         val weight = userWeight.value.toDoubleOrNull()
         val height = userHeight.value.toDoubleOrNull()
 
         return when (type) {
             "steps" -> {
                 if (weight != null && height != null) {
-                    // 1. 使用身高估算步幅 (Stride Length)
-                    // 步幅 (米) ≈ 身高 (厘米) * 0.414 / 100
                     val strideMeters = (height * 0.414) / 100
-
-                    // 2. 计算距离 (公里)
                     val distanceKm = (value * strideMeters) / 1000
-
-                    // 3. 计算卡路里: 距离 * 体重 * 系数 (走路约为 1.036)
                     (distanceKm * weight * 1.036).toInt()
                 } else if (weight != null) {
-                    // 只有体重: 简单估算 (步数 * 体重 * 0.0005)
                     (value * weight * 0.0005).toInt()
                 } else {
-                    // 默认: 步数 * 0.04
                     (value * 0.04).toInt()
                 }
             }
             "workout" -> {
-                // MET (代谢当量) 值 - 衡量运动强度的指标
                 val met = when {
-                    notes.contains("Type: Running") -> 11.0 // 跑步
-                    notes.contains("Type: HIIT") -> 11.5    // 高强度间歇
-                    notes.contains("Type: Cycling") -> 8.0  // 骑行
-                    notes.contains("Type: Swimming") -> 9.0 // 游泳
-                    notes.contains("Type: Weightlifting") -> 4.5 // 举重
-                    notes.contains("Type: Yoga") -> 3.0     // 瑜伽
-                    else -> 5.0 // 其他
+                    notes.contains("Type: Running") -> 11.0
+                    notes.contains("Type: HIIT") -> 11.5
+                    notes.contains("Type: Cycling") -> 8.0
+                    notes.contains("Type: Swimming") -> 9.0
+                    notes.contains("Type: Weightlifting") -> 4.5
+                    notes.contains("Type: Yoga") -> 3.0
+                    else -> 5.0
                 }
 
                 if (weight != null) {
-                    // 公式: 卡路里/分钟 = (MET * 3.5 * 体重kg) / 200
                     val calsPerMin = (met * 3.5 * weight) / 200
                     (calsPerMin * value).toInt()
                 } else {
-                    // 默认回退 (假设体重约 70kg 左右)
-                    // 之前的简单倍率逻辑
                     val multiplier = when {
                         notes.contains("Type: Running") -> 10
                         notes.contains("Type: HIIT") -> 12
@@ -236,7 +242,7 @@ class SmartFitViewModel(application: Application) : AndroidViewModel(application
                     value * multiplier
                 }
             }
-            "food" -> value // 用户直接输入的卡路里
+            "food" -> value
             else -> 0
         }
     }
@@ -277,11 +283,12 @@ class SmartFitViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-    fun saveGoals(steps: String, calories: String) {
+    fun saveGoals(steps: String, burn: String, intake: String) {
         viewModelScope.launch {
             context.dataStore.edit { prefs ->
                 prefs[STEP_GOAL_KEY] = steps
-                prefs[CALORIE_GOAL_KEY] = calories
+                prefs[CALORIE_BURN_GOAL_KEY] = burn
+                prefs[CALORIE_INTAKE_GOAL_KEY] = intake
             }
         }
     }

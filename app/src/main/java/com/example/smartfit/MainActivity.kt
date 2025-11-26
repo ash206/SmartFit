@@ -7,7 +7,7 @@ import android.widget.DatePicker
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.animation.core.* // 1. 引入动画核心库
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -64,7 +64,6 @@ fun SmartFitApp() {
         val navBackStackEntry by navController.currentBackStackEntryAsState()
         val currentRoute = navBackStackEntry?.destination?.route
 
-        // Hide BottomBar on Login, Register, Add Activity and Detail screens
         val showBottomBar = currentRoute !in listOf(
             "login",
             "register",
@@ -73,7 +72,6 @@ fun SmartFitApp() {
         ) && currentRoute?.startsWith("activity_detail") != true
 
         Scaffold(
-            // Scaffold background adapts automatically based on theme
             containerColor = MaterialTheme.colorScheme.background,
             bottomBar = {
                 if (showBottomBar) {
@@ -121,7 +119,7 @@ fun SmartFitApp() {
 }
 
 // --- AUTH SCREENS ---
-
+// (LoginScreen and RegisterScreen remain unchanged)
 @Composable
 fun LoginScreen(navController: NavController) {
     val viewModel: SmartFitViewModel = viewModel()
@@ -137,7 +135,7 @@ fun LoginScreen(navController: NavController) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background) // Adapted background
+            .background(MaterialTheme.colorScheme.background)
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
@@ -149,24 +147,15 @@ fun LoginScreen(navController: NavController) {
 
         Spacer(Modifier.height(32.dp))
 
-        Text(
-            "Welcome Back",
-            fontSize = 28.sp,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onBackground // Adapted Text
-        )
+        Text("Welcome Back", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
         Text("Sign in to continue", color = Color.Gray)
 
         Spacer(Modifier.height(32.dp))
 
         OutlinedTextField(
-            value = email,
-            onValueChange = { email = it },
-            label = { Text("Email") },
+            value = email, onValueChange = { email = it }, label = { Text("Email") },
             isError = errorMessage != null && (email.isBlank() || errorMessage!!.contains("Email") || errorMessage!!.contains("account")),
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
-            singleLine = true,
+            modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp), singleLine = true,
             colors = OutlinedTextFieldDefaults.colors(
                 focusedContainerColor = MaterialTheme.colorScheme.surface,
                 unfocusedContainerColor = MaterialTheme.colorScheme.surface,
@@ -178,14 +167,10 @@ fun LoginScreen(navController: NavController) {
         Spacer(Modifier.height(16.dp))
 
         OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
-            label = { Text("Password") },
+            value = password, onValueChange = { password = it }, label = { Text("Password") },
             isError = errorMessage != null && (password.isBlank() || errorMessage!!.contains("Password")),
             visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
-            singleLine = true,
+            modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp), singleLine = true,
             colors = OutlinedTextFieldDefaults.colors(
                 focusedContainerColor = MaterialTheme.colorScheme.surface,
                 unfocusedContainerColor = MaterialTheme.colorScheme.surface,
@@ -217,19 +202,13 @@ fun LoginScreen(navController: NavController) {
             },
             modifier = Modifier.fillMaxWidth().height(50.dp),
             shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = BluePrimary) // Use BluePrimary for visibility
+            colors = ButtonDefaults.buttonColors(containerColor = BluePrimary)
         ) { Text("Log In", fontSize = 16.sp, color = Color.White) }
 
         Spacer(Modifier.height(16.dp))
-
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text("Don't have an account? ", color = Color.Gray)
-            Text(
-                "Sign Up",
-                color = BluePrimary,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.clickable { navController.navigate("register") }
-            )
+            Text("Sign Up", color = BluePrimary, fontWeight = FontWeight.Bold, modifier = Modifier.clickable { navController.navigate("register") })
         }
     }
 }
@@ -244,10 +223,7 @@ fun RegisterScreen(navController: NavController, viewModel: SmartFitViewModel) {
     val storedEmail by viewModel.userEmail.collectAsState()
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(24.dp),
+        modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
@@ -255,7 +231,6 @@ fun RegisterScreen(navController: NavController, viewModel: SmartFitViewModel) {
         Text("Start your fitness journey today", color = Color.Gray)
         Spacer(Modifier.height(32.dp))
 
-        // Input Fields with Theme Colors
         val textFieldColors = OutlinedTextFieldDefaults.colors(
             focusedContainerColor = MaterialTheme.colorScheme.surface,
             unfocusedContainerColor = MaterialTheme.colorScheme.surface,
@@ -263,26 +238,11 @@ fun RegisterScreen(navController: NavController, viewModel: SmartFitViewModel) {
             unfocusedTextColor = MaterialTheme.colorScheme.onSurface
         )
 
-        OutlinedTextField(
-            value = name, onValueChange = { name = it }, label = { Text("Full Name") },
-            modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp), singleLine = true,
-            colors = textFieldColors
-        )
+        OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Full Name") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp), singleLine = true, colors = textFieldColors)
         Spacer(Modifier.height(16.dp))
-        OutlinedTextField(
-            value = email, onValueChange = { email = it }, label = { Text("Email") },
-            isError = errorMessage?.contains("Email") == true,
-            modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp), singleLine = true,
-            colors = textFieldColors
-        )
+        OutlinedTextField(value = email, onValueChange = { email = it }, label = { Text("Email") }, isError = errorMessage?.contains("Email") == true, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp), singleLine = true, colors = textFieldColors)
         Spacer(Modifier.height(16.dp))
-        OutlinedTextField(
-            value = password, onValueChange = { password = it }, label = { Text("Password") },
-            isError = errorMessage?.contains("Password") == true,
-            visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp), singleLine = true,
-            colors = textFieldColors
-        )
+        OutlinedTextField(value = password, onValueChange = { password = it }, label = { Text("Password") }, isError = errorMessage?.contains("Password") == true, visualTransformation = PasswordVisualTransformation(), modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp), singleLine = true, colors = textFieldColors)
 
         if (errorMessage != null) {
             Spacer(Modifier.height(8.dp))
@@ -332,15 +292,19 @@ fun RegisterScreen(navController: NavController, viewModel: SmartFitViewModel) {
 
 @Composable
 fun HomeScreen(navController: NavController, viewModel: SmartFitViewModel) {
-    val activities by viewModel.activities.collectAsState()
+    val dailyStats by viewModel.dailySummary.collectAsState()
     val tip by viewModel.fitnessTip.collectAsState()
     val storedName by viewModel.userName.collectAsState()
-    val stepGoalString by viewModel.stepGoal.collectAsState()
-    val calGoalString by viewModel.calorieGoal.collectAsState()
 
-    val todaySteps = activities.filter { it.type == "steps" }.sumOf { it.value }
-    val todayCals = activities.sumOf { it.calories }
-    val todayWorkouts = activities.count { it.type == "workout" }
+    // Goals
+    val stepGoalString by viewModel.stepGoal.collectAsState()
+    val intakeGoalString by viewModel.calorieIntakeGoal.collectAsState()
+    val burnGoalString by viewModel.calorieBurnGoal.collectAsState()
+
+    val todaySteps = dailyStats.steps
+    val todayBurn = dailyStats.caloriesBurned
+    val todayIntake = dailyStats.caloriesIntake
+    val todayWorkouts = dailyStats.workouts
 
     val malaysiaTimeZone = TimeZone.getTimeZone("Asia/Kuala_Lumpur")
     val dateFormat = SimpleDateFormat("EEEE, MMMM d, yyyy", Locale.getDefault())
@@ -379,13 +343,30 @@ fun HomeScreen(navController: NavController, viewModel: SmartFitViewModel) {
             )
         }
 
+        // Two Calorie Cards: Burned and Intake
+        item {
+            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                Box(Modifier.weight(1f)) {
+                    ModernStatCard(
+                        title = "Burned",
+                        current = todayBurn,
+                        total = burnGoalString.toIntOrNull() ?: 500,
+                        unit = "kcal",
+                        icon = Icons.Default.LocalFireDepartment,
+                        accentColor = OrangePrimary,
+                        bgColor = OrangeBackground
+                    )
+                }
+            }
+        }
+
         item {
             ModernStatCard(
-                title = "Calories",
-                current = todayCals,
-                total = calGoalString.toIntOrNull() ?: 2000,
+                title = "Intake",
+                current = todayIntake,
+                total = intakeGoalString.toIntOrNull() ?: 2000,
                 unit = "kcal",
-                icon = Icons.Default.LocalFireDepartment,
+                icon = Icons.Default.Restaurant,
                 accentColor = GreenPrimary,
                 bgColor = GreenBackground
             )
@@ -398,14 +379,14 @@ fun HomeScreen(navController: NavController, viewModel: SmartFitViewModel) {
                 total = 1,
                 unit = "completed",
                 icon = Icons.Default.FitnessCenter,
-                accentColor = OrangePrimary,
-                bgColor = OrangeBackground
+                accentColor = Purple40,
+                bgColor = Color(0xFFF3E8FF)
             )
         }
 
         item {
             Card(
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface), // Adapted
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 shape = RoundedCornerShape(16.dp),
                 modifier = Modifier.fillMaxWidth().border(1.dp, MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(16.dp))
             ) {
@@ -421,20 +402,7 @@ fun HomeScreen(navController: NavController, viewModel: SmartFitViewModel) {
                     ) {
                         Icon(Icons.Default.DirectionsWalk, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(8.dp))
-                        Text("Log Steps", color = Color.White)
-                    }
-
-                    Spacer(Modifier.height(8.dp))
-
-                    OutlinedButton(
-                        onClick = { navController.navigate("add_activity") },
-                        modifier = Modifier.fillMaxWidth().height(50.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, Color.Gray.copy(alpha = 0.5f))
-                    ) {
-                        Icon(Icons.Default.FitnessCenter, contentDescription = null, modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.onSurface)
-                        Spacer(Modifier.width(8.dp))
-                        Text("Add Workout", color = MaterialTheme.colorScheme.onSurface)
+                        Text("Log Activity", color = Color.White)
                     }
 
                     Spacer(Modifier.height(8.dp))
@@ -457,16 +425,13 @@ fun HomeScreen(navController: NavController, viewModel: SmartFitViewModel) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(16.dp)) // Adapted
+                    .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(16.dp))
                     .padding(16.dp)
             ) {
                 Column {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box(
-                                modifier = Modifier.size(32.dp).background(MaterialTheme.colorScheme.background, CircleShape),
-                                contentAlignment = Alignment.Center
-                            ) {
+                            Box(modifier = Modifier.size(32.dp).background(MaterialTheme.colorScheme.background, CircleShape), contentAlignment = Alignment.Center) {
                                 Icon(Icons.Default.Lightbulb, null, modifier = Modifier.size(16.dp), tint = Color.Gray)
                             }
                             Spacer(Modifier.width(8.dp))
@@ -480,12 +445,6 @@ fun HomeScreen(navController: NavController, viewModel: SmartFitViewModel) {
                     }
                     Spacer(Modifier.height(8.dp))
                     Text("\"$tip\"", fontStyle = androidx.compose.ui.text.font.FontStyle.Italic, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Spacer(Modifier.height(12.dp))
-                    Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                        Surface(shape = RoundedCornerShape(4.dp), color = MaterialTheme.colorScheme.background) {
-                            Text("General Fitness", modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), fontSize = 10.sp, color = Color.Gray)
-                        }
-                    }
                 }
             }
         }
@@ -520,7 +479,6 @@ fun ActivitiesScreen(navController: NavController, viewModel: SmartFitViewModel)
                     Icon(Icons.Default.FitnessCenter, null, modifier = Modifier.size(64.dp), tint = Color.LightGray)
                     Spacer(Modifier.height(16.dp))
                     Text("No activities yet", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = MaterialTheme.colorScheme.onBackground)
-                    Text("Start tracking your fitness journey", color = Color.Gray)
                 }
             }
         } else {
@@ -535,6 +493,7 @@ fun ActivitiesScreen(navController: NavController, viewModel: SmartFitViewModel)
     }
 }
 
+// AddActivityScreen - largely unchanged logic, just context
 @Composable
 fun AddActivityScreen(navController: NavController, viewModel: SmartFitViewModel, activityId: Int = -1) {
     val context = LocalContext.current
@@ -555,13 +514,11 @@ fun AddActivityScreen(navController: NavController, viewModel: SmartFitViewModel
     var selectedFoodType by remember { mutableStateOf(foodList.first()) }
     var foodQuantity by remember { mutableStateOf("1") }
 
-    // Date Picker Logic (Keep existing logic)
     val calendar = Calendar.getInstance(TimeZone.getTimeZone("Asia/Kuala_Lumpur"))
     calendar.timeInMillis = selectedDate
 
     val datePickerDialog = DatePickerDialog(
-        context,
-        { _, year, month, dayOfMonth ->
+        context, { _, year, month, dayOfMonth ->
             val newDate = Calendar.getInstance(TimeZone.getTimeZone("Asia/Kuala_Lumpur"))
             newDate.set(year, month, dayOfMonth)
             val currentTime = Calendar.getInstance(TimeZone.getTimeZone("Asia/Kuala_Lumpur"))
@@ -569,24 +526,17 @@ fun AddActivityScreen(navController: NavController, viewModel: SmartFitViewModel
             newDate.set(Calendar.HOUR_OF_DAY, currentTime.get(Calendar.HOUR_OF_DAY))
             newDate.set(Calendar.MINUTE, currentTime.get(Calendar.MINUTE))
             selectedDate = newDate.timeInMillis
-        },
-        calendar.get(Calendar.YEAR),
-        calendar.get(Calendar.MONTH),
-        calendar.get(Calendar.DAY_OF_MONTH)
+        }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)
     )
 
     val timePickerDialog = TimePickerDialog(
-        context,
-        { _, hourOfDay, minute ->
+        context, { _, hourOfDay, minute ->
             val newTime = Calendar.getInstance(TimeZone.getTimeZone("Asia/Kuala_Lumpur"))
             newTime.timeInMillis = selectedDate
             newTime.set(Calendar.HOUR_OF_DAY, hourOfDay)
             newTime.set(Calendar.MINUTE, minute)
             selectedDate = newTime.timeInMillis
-        },
-        calendar.get(Calendar.HOUR_OF_DAY),
-        calendar.get(Calendar.MINUTE),
-        true
+        }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), true
     )
 
     if (isEditMode) {
@@ -640,188 +590,86 @@ fun AddActivityScreen(navController: NavController, viewModel: SmartFitViewModel
         return
     }
 
-    Column(
-        Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background) // Adapted
-            .padding(16.dp)
-    ) {
-        Text(
-            text = if (isEditMode) "Edit Activity" else "Add New Activity",
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onBackground // Adapted
-        )
+    Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).padding(16.dp)) {
+        Text(text = if (isEditMode) "Edit Activity" else "Add New Activity", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
         Spacer(Modifier.height(24.dp))
 
         Text("Activity Type", fontWeight = FontWeight.SemiBold, fontSize = 14.sp, color = MaterialTheme.colorScheme.onBackground)
         Spacer(Modifier.height(8.dp))
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(8.dp)) // Adapted
-                .padding(4.dp)
-        ) {
+        Row(Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(8.dp)).padding(4.dp)) {
             listOf("steps", "workout", "food").forEach { type ->
                 val isSelected = selectedType == type
                 Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(36.dp)
-                        .background(if (isSelected) MaterialTheme.colorScheme.surface else Color.Transparent, RoundedCornerShape(6.dp))
-                        .clickable {
-                            selectedType = type
-                            value = ""
-                            foodQuantity = "1"
-                        },
+                    modifier = Modifier.weight(1f).height(36.dp).background(if (isSelected) MaterialTheme.colorScheme.surface else Color.Transparent, RoundedCornerShape(6.dp)).clickable { selectedType = type; value = ""; foodQuantity = "1" },
                     contentAlignment = Alignment.Center
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        val icon = when(type) {
-                            "steps" -> Icons.Default.DirectionsWalk
-                            "workout" -> Icons.Default.FitnessCenter
-                            else -> Icons.Default.Restaurant
-                        }
-                        // Icon tint logic: If selected, use primary color or black (on light). If not, use onSurfaceVariant
+                        val icon = when(type) { "steps" -> Icons.Default.DirectionsWalk; "workout" -> Icons.Default.FitnessCenter; else -> Icons.Default.Restaurant }
                         val tint = if(isSelected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
                         Icon(icon, null, modifier = Modifier.size(14.dp), tint = tint)
                         Spacer(Modifier.width(6.dp))
-                        Text(
-                            type.replaceFirstChar { it.uppercase() },
-                            fontSize = 14.sp,
-                            fontWeight = if(isSelected) FontWeight.Bold else FontWeight.Normal,
-                            color = tint
-                        )
+                        Text(type.replaceFirstChar { it.uppercase() }, fontSize = 14.sp, fontWeight = if(isSelected) FontWeight.Bold else FontWeight.Normal, color = tint)
                     }
                 }
             }
         }
 
         Spacer(Modifier.height(24.dp))
-
-        // --- Colors for Inputs ---
         val inputColors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = BluePrimary,
-            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-            focusedContainerColor = MaterialTheme.colorScheme.surface,
-            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-            focusedTextColor = MaterialTheme.colorScheme.onSurface,
-            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-            disabledContainerColor = MaterialTheme.colorScheme.surface,
-            disabledTextColor = MaterialTheme.colorScheme.onSurface,
-            disabledBorderColor = MaterialTheme.colorScheme.outline
+            focusedBorderColor = BluePrimary, unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+            focusedContainerColor = MaterialTheme.colorScheme.surface, unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+            focusedTextColor = MaterialTheme.colorScheme.onSurface, unfocusedTextColor = MaterialTheme.colorScheme.onSurface
         )
 
-        // --- A. Workout ---
         if (selectedType == "workout") {
             Text("Workout Type", fontWeight = FontWeight.SemiBold, fontSize = 14.sp, color = MaterialTheme.colorScheme.onBackground)
             Spacer(Modifier.height(8.dp))
             var expanded by remember { mutableStateOf(false) }
             Box(modifier = Modifier.fillMaxWidth()) {
-                OutlinedTextField(
-                    value = selectedWorkoutType,
-                    onValueChange = {},
-                    readOnly = true,
-                    trailingIcon = { Icon(Icons.Default.ArrowDropDown, null, tint = MaterialTheme.colorScheme.onSurface) },
-                    modifier = Modifier.fillMaxWidth(),
-                    enabled = false,
-                    colors = inputColors // Use adapted colors
-                )
+                OutlinedTextField(value = selectedWorkoutType, onValueChange = {}, readOnly = true, trailingIcon = { Icon(Icons.Default.ArrowDropDown, null, tint = MaterialTheme.colorScheme.onSurface) }, modifier = Modifier.fillMaxWidth(), enabled = false, colors = inputColors)
                 Box(modifier = Modifier.matchParentSize().clickable { expanded = true })
-                DropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false },
-                    modifier = Modifier.background(MaterialTheme.colorScheme.surface)
-                ) {
-                    workoutTypes.forEach { type ->
-                        DropdownMenuItem(
-                            text = { Text(type, color = MaterialTheme.colorScheme.onSurface) },
-                            onClick = { selectedWorkoutType = type; expanded = false }
-                        )
-                    }
+                DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }, modifier = Modifier.background(MaterialTheme.colorScheme.surface)) {
+                    workoutTypes.forEach { type -> DropdownMenuItem(text = { Text(type, color = MaterialTheme.colorScheme.onSurface) }, onClick = { selectedWorkoutType = type; expanded = false }) }
                 }
             }
             Spacer(Modifier.height(24.dp))
         }
 
-        // --- B. Food ---
         if (selectedType == "food") {
             Text("Select Food", fontWeight = FontWeight.SemiBold, fontSize = 14.sp, color = MaterialTheme.colorScheme.onBackground)
             Spacer(Modifier.height(8.dp))
             var expanded by remember { mutableStateOf(false) }
             Box(modifier = Modifier.fillMaxWidth()) {
-                OutlinedTextField(
-                    value = selectedFoodType,
-                    onValueChange = {},
-                    readOnly = true,
-                    trailingIcon = { Icon(Icons.Default.ArrowDropDown, null, tint = MaterialTheme.colorScheme.onSurface) },
-                    modifier = Modifier.fillMaxWidth(),
-                    enabled = false,
-                    colors = inputColors
-                )
+                OutlinedTextField(value = selectedFoodType, onValueChange = {}, readOnly = true, trailingIcon = { Icon(Icons.Default.ArrowDropDown, null, tint = MaterialTheme.colorScheme.onSurface) }, modifier = Modifier.fillMaxWidth(), enabled = false, colors = inputColors)
                 Box(modifier = Modifier.matchParentSize().clickable { expanded = true })
-                DropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false },
-                    modifier = Modifier.background(MaterialTheme.colorScheme.surface)
-                ) {
-                    foodList.forEach { food ->
-                        DropdownMenuItem(
-                            text = { Text(food, color = MaterialTheme.colorScheme.onSurface) },
-                            onClick = { selectedFoodType = food; expanded = false }
-                        )
-                    }
+                DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }, modifier = Modifier.background(MaterialTheme.colorScheme.surface)) {
+                    foodList.forEach { food -> DropdownMenuItem(text = { Text(food, color = MaterialTheme.colorScheme.onSurface) }, onClick = { selectedFoodType = food; expanded = false }) }
                 }
             }
             Spacer(Modifier.height(16.dp))
-
             Text("Quantity / Servings", fontWeight = FontWeight.SemiBold, fontSize = 14.sp, color = MaterialTheme.colorScheme.onBackground)
             Spacer(Modifier.height(8.dp))
-            OutlinedTextField(
-                value = foodQuantity,
-                onValueChange = { if (it.all { c -> c.isDigit() || c == '.' }) foodQuantity = it },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                colors = inputColors
-            )
-
+            OutlinedTextField(value = foodQuantity, onValueChange = { if (it.all { c -> c.isDigit() || c == '.' }) foodQuantity = it }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp), colors = inputColors)
             val unitCals = viewModel.foodDatabase[selectedFoodType] ?: 0
             val qty = foodQuantity.toFloatOrNull() ?: 0f
             val totalCals = (unitCals * qty).toInt()
-
             Spacer(Modifier.height(12.dp))
-            Card(
-                colors = CardDefaults.cardColors(containerColor = GreenBackground), // GreenBackground is light, make sure text is dark
-                shape = RoundedCornerShape(8.dp)
-            ) {
+            Card(colors = CardDefaults.cardColors(containerColor = GreenBackground), shape = RoundedCornerShape(8.dp)) {
                 Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Default.LocalFireDepartment, null, tint = GreenPrimary, modifier = Modifier.size(20.dp))
                     Spacer(Modifier.width(8.dp))
-                    Text("Total: $totalCals kcal", fontWeight = FontWeight.Bold, color = GreenPrimary) // Using brand color
+                    Text("Total Intake: $totalCals kcal", fontWeight = FontWeight.Bold, color = GreenPrimary)
                 }
             }
             Spacer(Modifier.height(24.dp))
-        }
-
-        // --- C. Steps / Duration ---
-        else {
+        } else {
             val labelText = if (selectedType == "steps") "Number of Steps" else "Duration (mins)"
             Text(labelText, fontWeight = FontWeight.SemiBold, fontSize = 14.sp, color = MaterialTheme.colorScheme.onBackground)
             Spacer(Modifier.height(8.dp))
-            OutlinedTextField(
-                value = value,
-                onValueChange = { if (it.all { c -> c.isDigit() }) value = it },
-                placeholder = { Text("e.g., ${if(selectedType == "steps") "10000" else "30"}", color = Color.Gray) },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                colors = inputColors
-            )
+            OutlinedTextField(value = value, onValueChange = { if (it.all { c -> c.isDigit() }) value = it }, placeholder = { Text("e.g., ${if(selectedType == "steps") "10000" else "30"}", color = Color.Gray) }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp), colors = inputColors)
             Spacer(Modifier.height(24.dp))
         }
 
-        // 3. Date & Time
         Text("Date & Time", fontWeight = FontWeight.SemiBold, fontSize = 14.sp, color = MaterialTheme.colorScheme.onBackground)
         Spacer(Modifier.height(8.dp))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -830,62 +678,32 @@ fun AddActivityScreen(navController: NavController, viewModel: SmartFitViewModel
             val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
             timeFormat.timeZone = TimeZone.getTimeZone("Asia/Kuala_Lumpur")
 
-            OutlinedButton(
-                onClick = { datePickerDialog.show() },
-                modifier = Modifier.weight(1f),
-                shape = RoundedCornerShape(12.dp),
-                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
-            ) {
+            OutlinedButton(onClick = { datePickerDialog.show() }, modifier = Modifier.weight(1f), shape = RoundedCornerShape(12.dp), border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline)) {
                 Icon(Icons.Default.CalendarToday, null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSurface)
                 Spacer(Modifier.width(8.dp))
                 Text(dateFormat.format(Date(selectedDate)), color = MaterialTheme.colorScheme.onSurface)
             }
-            OutlinedButton(
-                onClick = { timePickerDialog.show() },
-                modifier = Modifier.weight(1f),
-                shape = RoundedCornerShape(12.dp),
-                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
-            ) {
+            OutlinedButton(onClick = { timePickerDialog.show() }, modifier = Modifier.weight(1f), shape = RoundedCornerShape(12.dp), border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline)) {
                 Icon(Icons.Default.Schedule, null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSurface)
                 Spacer(Modifier.width(8.dp))
                 Text(timeFormat.format(Date(selectedDate)), color = MaterialTheme.colorScheme.onSurface)
             }
         }
-
         Spacer(Modifier.height(24.dp))
-
         Text("Notes (optional)", fontWeight = FontWeight.SemiBold, fontSize = 14.sp, color = MaterialTheme.colorScheme.onBackground)
         Spacer(Modifier.height(8.dp))
-        OutlinedTextField(
-            value = notes,
-            onValueChange = { notes = it },
-            placeholder = { Text("Add any additional notes...", color = Color.Gray) },
-            modifier = Modifier.fillMaxWidth().height(100.dp),
-            shape = RoundedCornerShape(12.dp),
-            colors = inputColors
-        )
-
+        OutlinedTextField(value = notes, onValueChange = { notes = it }, placeholder = { Text("Add any additional notes...", color = Color.Gray) }, modifier = Modifier.fillMaxWidth().height(100.dp), shape = RoundedCornerShape(12.dp), colors = inputColors)
         Spacer(Modifier.weight(1f))
-
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            OutlinedButton(
-                onClick = { navController.popBackStack() },
-                modifier = Modifier.weight(1f).height(50.dp),
-                shape = RoundedCornerShape(12.dp),
-                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
-            ) {
-                Text("Cancel", color = MaterialTheme.colorScheme.onSurface)
-            }
+            OutlinedButton(onClick = { navController.popBackStack() }, modifier = Modifier.weight(1f).height(50.dp), shape = RoundedCornerShape(12.dp), border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline)) { Text("Cancel", color = MaterialTheme.colorScheme.onSurface) }
             Button(
                 onClick = {
                     var finalValue = 0
                     var finalNotes = notes
-
                     if (selectedType == "food") {
                         val unitCals = viewModel.foodDatabase[selectedFoodType] ?: 0
                         val qty = foodQuantity.toFloatOrNull() ?: 0f
                         finalValue = (unitCals * qty).toInt()
-
                         val foodInfo = "Food: $selectedFoodType x $foodQuantity"
                         finalNotes = if (notes.isNotEmpty()) "$foodInfo. $notes" else foodInfo
                     } else {
@@ -895,24 +713,13 @@ fun AddActivityScreen(navController: NavController, viewModel: SmartFitViewModel
                             finalNotes = if (notes.isNotEmpty()) "$workoutInfo. $notes" else workoutInfo
                         }
                     }
-
                     if (finalValue > 0) {
-                        if (isEditMode) {
-                            viewModel.updateActivity(activityId, selectedType, finalValue, finalNotes, selectedDate)
-                        } else {
-                            viewModel.addActivity(selectedType, finalValue, finalNotes, selectedDate)
-                        }
+                        if (isEditMode) viewModel.updateActivity(activityId, selectedType, finalValue, finalNotes, selectedDate)
+                        else viewModel.addActivity(selectedType, finalValue, finalNotes, selectedDate)
                         navController.popBackStack()
-                    } else {
-                        Toast.makeText(context, "Please enter a valid amount", Toast.LENGTH_SHORT).show()
-                    }
-                },
-                modifier = Modifier.weight(1f).height(50.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = BluePrimary)
-            ) {
-                Text(if (isEditMode) "Update" else "Add Activity", color = Color.White)
-            }
+                    } else { Toast.makeText(context, "Please enter a valid amount", Toast.LENGTH_SHORT).show() }
+                }, modifier = Modifier.weight(1f).height(50.dp), shape = RoundedCornerShape(12.dp), colors = ButtonDefaults.buttonColors(containerColor = BluePrimary)
+            ) { Text(if (isEditMode) "Update" else "Add Activity", color = Color.White) }
         }
     }
 }
@@ -924,11 +731,22 @@ fun SummaryScreen(viewModel: SmartFitViewModel) {
     val weeklyStats by viewModel.weeklySummary.collectAsState()
     val activities by viewModel.activities.collectAsState()
 
-    val (daySteps, dayCals, dayWorkouts) = dailyStats
-    val (weekSteps, weekCals, weekWorkouts) = weeklyStats
+    // Daily
+    val daySteps = dailyStats.steps
+    val dayBurn = dailyStats.caloriesBurned
+    val dayIntake = dailyStats.caloriesIntake
+    val dayWorkouts = dailyStats.workouts
 
+    // Weekly
+    val weekSteps = weeklyStats.steps
+    val weekBurn = weeklyStats.caloriesBurned
+    val weekIntake = weeklyStats.caloriesIntake
+    val weekWorkouts = weeklyStats.workouts
+
+    // All Time (Calculated here)
     val totalSteps = activities.filter { it.type == "steps" }.sumOf { it.value }
-    val totalCalories = activities.sumOf { it.calories }
+    val totalBurn = activities.filter { it.type == "steps" || it.type == "workout" }.sumOf { it.calories }
+    val totalIntake = activities.filter { it.type == "food" }.sumOf { it.calories }
     val totalWorkouts = activities.count { it.type == "workout" }
 
     LazyColumn(
@@ -942,32 +760,27 @@ fun SummaryScreen(viewModel: SmartFitViewModel) {
             }
         }
 
-        item {
-            SummarySection(title = "Today", steps = daySteps, calories = dayCals, workouts = dayWorkouts, color = BluePrimary)
-        }
-
-        item {
-            SummarySection(title = "This Week (Last 7 Days)", steps = weekSteps, calories = weekCals, workouts = weekWorkouts, color = OrangePrimary)
-        }
-
-        item {
-            SummarySection(title = "All Time", steps = totalSteps, calories = totalCalories, workouts = totalWorkouts, color = GreenPrimary)
-        }
-
+        item { SummarySection(title = "Today", steps = daySteps, burned = dayBurn, intake = dayIntake, workouts = dayWorkouts, color = BluePrimary) }
+        item { SummarySection(title = "This Week", steps = weekSteps, burned = weekBurn, intake = weekIntake, workouts = weekWorkouts, color = OrangePrimary) }
+        item { SummarySection(title = "All Time", steps = totalSteps, burned = totalBurn, intake = totalIntake, workouts = totalWorkouts, color = GreenPrimary) }
         item { Spacer(Modifier.height(20.dp)) }
     }
 }
 
 @Composable
-fun SummarySection(title: String, steps: Int, calories: Int, workouts: Int, color: Color) {
+fun SummarySection(title: String, steps: Int, burned: Int, intake: Int, workouts: Int, color: Color) {
     Column {
         Text(title, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
         Spacer(Modifier.height(12.dp))
 
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             SummaryStatCard(Modifier.weight(1f), Icons.Default.DirectionsWalk, "$steps", "Steps", color)
-            SummaryStatCard(Modifier.weight(1f), Icons.Default.LocalFireDepartment, "$calories", "Kcal", color)
-            SummaryStatCard(Modifier.weight(1f), Icons.Default.FitnessCenter, "$workouts", "Workouts", color)
+            SummaryStatCard(Modifier.weight(1f), Icons.Default.LocalFireDepartment, "$burned", "Burned", OrangePrimary)
+        }
+        Spacer(Modifier.height(8.dp))
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            SummaryStatCard(Modifier.weight(1f), Icons.Default.Restaurant, "$intake", "Intake", GreenPrimary)
+            SummaryStatCard(Modifier.weight(1f), Icons.Default.FitnessCenter, "$workouts", "Workouts", Purple40)
         }
     }
 }
@@ -980,10 +793,7 @@ fun SummaryStatCard(modifier: Modifier = Modifier, icon: ImageVector, value: Str
         shape = RoundedCornerShape(12.dp),
         border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.surfaceVariant)
     ) {
-        Column(
-            modifier = Modifier.padding(12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
+        Column(modifier = Modifier.padding(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
             Icon(icon, null, tint = tint, modifier = Modifier.size(24.dp))
             Spacer(Modifier.height(8.dp))
             Text(value, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface)
@@ -1001,8 +811,10 @@ fun ProfileScreen(navController: NavController, viewModel: SmartFitViewModel) {
     val storedWeight by viewModel.userWeight.collectAsState()
     val storedHeight by viewModel.userHeight.collectAsState()
     val storedAge by viewModel.userAge.collectAsState()
+
     val storedStepGoal by viewModel.stepGoal.collectAsState()
-    val storedCalGoal by viewModel.calorieGoal.collectAsState()
+    val storedIntakeGoal by viewModel.calorieIntakeGoal.collectAsState()
+    val storedBurnGoal by viewModel.calorieBurnGoal.collectAsState()
 
     var name by remember { mutableStateOf(storedName) }
     var weight by remember { mutableStateOf(storedWeight) }
@@ -1010,19 +822,18 @@ fun ProfileScreen(navController: NavController, viewModel: SmartFitViewModel) {
     var age by remember { mutableStateOf(storedAge) }
 
     var stepGoal by remember { mutableStateOf(storedStepGoal) }
-    var calorieGoal by remember { mutableStateOf(storedCalGoal) }
+    var intakeGoal by remember { mutableStateOf(storedIntakeGoal) }
+    var burnGoal by remember { mutableStateOf(storedBurnGoal) }
 
     LaunchedEffect(storedName) { name = storedName }
     LaunchedEffect(storedWeight) { weight = storedWeight }
     LaunchedEffect(storedHeight) { height = storedHeight }
     LaunchedEffect(storedAge) { age = storedAge }
     LaunchedEffect(storedStepGoal) { stepGoal = storedStepGoal }
-    LaunchedEffect(storedCalGoal) { calorieGoal = storedCalGoal }
+    LaunchedEffect(storedIntakeGoal) { intakeGoal = storedIntakeGoal }
+    LaunchedEffect(storedBurnGoal) { burnGoal = storedBurnGoal }
 
-    LazyColumn(
-        modifier = Modifier.fillMaxSize().padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
+    LazyColumn(modifier = Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
         item {
             Column {
                 Text("Profile & Settings", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
@@ -1030,22 +841,15 @@ fun ProfileScreen(navController: NavController, viewModel: SmartFitViewModel) {
             }
         }
 
-        // Personal Information Card
         item {
-            Card(
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                shape = RoundedCornerShape(16.dp),
-                modifier = Modifier.border(1.dp, MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(16.dp))
-            ) {
+            Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface), shape = RoundedCornerShape(16.dp), modifier = Modifier.border(1.dp, MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(16.dp))) {
                 Column(Modifier.padding(16.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Outlined.Person, null, tint = MaterialTheme.colorScheme.onSurface)
                         Spacer(Modifier.width(8.dp))
                         Text("Personal Information", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
                     }
-
                     Spacer(Modifier.height(16.dp))
-
                     ProfileTextField(label = "Name", value = name, onValueChange = { name = it })
                     Spacer(Modifier.height(12.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -1054,18 +858,8 @@ fun ProfileScreen(navController: NavController, viewModel: SmartFitViewModel) {
                     }
                     Spacer(Modifier.height(12.dp))
                     ProfileTextField(label = "Age", value = age, onValueChange = { age = it }, isNumber = true)
-
                     Spacer(Modifier.height(20.dp))
-
-                    Button(
-                        onClick = {
-                            viewModel.saveUserProfile(name, weight, height, age)
-                            Toast.makeText(context, "Changes Saved", Toast.LENGTH_SHORT).show()
-                        },
-                        modifier = Modifier.fillMaxWidth().height(45.dp),
-                        shape = RoundedCornerShape(10.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = BluePrimary)
-                    ) {
+                    Button(onClick = { viewModel.saveUserProfile(name, weight, height, age); Toast.makeText(context, "Changes Saved", Toast.LENGTH_SHORT).show() }, modifier = Modifier.fillMaxWidth().height(45.dp), shape = RoundedCornerShape(10.dp), colors = ButtonDefaults.buttonColors(containerColor = BluePrimary)) {
                         Icon(Icons.Default.Save, null, modifier = Modifier.size(16.dp))
                         Spacer(Modifier.width(8.dp))
                         Text("Save Changes", color = Color.White)
@@ -1074,13 +868,8 @@ fun ProfileScreen(navController: NavController, viewModel: SmartFitViewModel) {
             }
         }
 
-        // Daily Goals Card (Re-added and adapted for Dark Mode)
         item {
-            Card(
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                shape = RoundedCornerShape(16.dp),
-                modifier = Modifier.border(1.dp, MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(16.dp))
-            ) {
+            Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface), shape = RoundedCornerShape(16.dp), modifier = Modifier.border(1.dp, MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(16.dp))) {
                 Column(Modifier.padding(16.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Outlined.TrackChanges, null, tint = MaterialTheme.colorScheme.onSurface)
@@ -1088,22 +877,13 @@ fun ProfileScreen(navController: NavController, viewModel: SmartFitViewModel) {
                         Text("Daily Goals", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
                     }
                     Spacer(Modifier.height(16.dp))
-
                     ProfileTextField(label = "Daily Step Goal", value = stepGoal, onValueChange = { stepGoal = it }, isNumber = true)
                     Spacer(Modifier.height(12.dp))
-                    ProfileTextField(label = "Daily Calorie Goal", value = calorieGoal, onValueChange = { calorieGoal = it }, isNumber = true)
-
+                    ProfileTextField(label = "Daily Burn Goal (kcal)", value = burnGoal, onValueChange = { burnGoal = it }, isNumber = true)
+                    Spacer(Modifier.height(12.dp))
+                    ProfileTextField(label = "Daily Intake Goal (kcal)", value = intakeGoal, onValueChange = { intakeGoal = it }, isNumber = true)
                     Spacer(Modifier.height(20.dp))
-
-                    Button(
-                        onClick = {
-                            viewModel.saveGoals(stepGoal, calorieGoal)
-                            Toast.makeText(context, "Goals Saved", Toast.LENGTH_SHORT).show()
-                        },
-                        modifier = Modifier.fillMaxWidth().height(45.dp),
-                        shape = RoundedCornerShape(10.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = BluePrimary)
-                    ) {
+                    Button(onClick = { viewModel.saveGoals(stepGoal, burnGoal, intakeGoal); Toast.makeText(context, "Goals Saved", Toast.LENGTH_SHORT).show() }, modifier = Modifier.fillMaxWidth().height(45.dp), shape = RoundedCornerShape(10.dp), colors = ButtonDefaults.buttonColors(containerColor = BluePrimary)) {
                         Icon(Icons.Default.Save, null, modifier = Modifier.size(16.dp))
                         Spacer(Modifier.width(8.dp))
                         Text("Save Goals", color = Color.White)
@@ -1112,19 +892,10 @@ fun ProfileScreen(navController: NavController, viewModel: SmartFitViewModel) {
             }
         }
 
-        // Appearance Card
         item {
-            Card(
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                shape = RoundedCornerShape(16.dp),
-                modifier = Modifier.border(1.dp, MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(16.dp))
-            ) {
+            Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface), shape = RoundedCornerShape(16.dp), modifier = Modifier.border(1.dp, MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(16.dp))) {
                 Column(Modifier.padding(16.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(if (isDark) Icons.Outlined.DarkMode else Icons.Outlined.LightMode, null, tint = MaterialTheme.colorScheme.onSurface)
                             Spacer(Modifier.width(8.dp))
@@ -1133,33 +904,19 @@ fun ProfileScreen(navController: NavController, viewModel: SmartFitViewModel) {
                                 Text("Toggle theme", fontSize = 12.sp, color = Color.Gray)
                             }
                         }
-                        Switch(
-                            checked = isDark,
-                            onCheckedChange = { viewModel.toggleDarkMode(it) }
-                        )
+                        Switch(checked = isDark, onCheckedChange = { viewModel.toggleDarkMode(it) })
                     }
                 }
             }
         }
 
         item {
-            OutlinedButton(
-                onClick = {
-                    navController.navigate("login") {
-                        popUpTo("home") { inclusive = true }
-                    }
-                },
-                modifier = Modifier.fillMaxWidth().height(50.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Red),
-                border = androidx.compose.foundation.BorderStroke(1.dp, Color.Red.copy(alpha = 0.5f))
-            ) {
+            OutlinedButton(onClick = { navController.navigate("login") { popUpTo("home") { inclusive = true } } }, modifier = Modifier.fillMaxWidth().height(50.dp), shape = RoundedCornerShape(12.dp), colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Red), border = androidx.compose.foundation.BorderStroke(1.dp, Color.Red.copy(alpha = 0.5f))) {
                 Icon(Icons.Default.ExitToApp, null, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(8.dp))
                 Text("Log Out")
             }
         }
-
         item { Spacer(Modifier.height(20.dp)) }
     }
 }
@@ -1169,87 +926,46 @@ fun ActivityDetailScreen(navController: NavController, viewModel: SmartFitViewMo
     val activityLog by viewModel.getActivity(activityId).collectAsState(initial = null)
     val context = LocalContext.current
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background) // Adapted
-            .padding(24.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
+    Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).padding(24.dp)) {
+        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = { navController.popBackStack() }) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onBackground)
-                }
+                IconButton(onClick = { navController.popBackStack() }) { Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onBackground) }
                 Spacer(Modifier.width(8.dp))
                 Text("Activity Details", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
             }
-
             if (activityLog != null) {
                 Row {
-                    IconButton(onClick = { navController.navigate("add_activity?activityId=${activityId}") }) {
-                        Icon(Icons.Default.Edit, contentDescription = "Edit", tint = BluePrimary)
-                    }
-                    IconButton(onClick = {
-                        viewModel.deleteActivity(activityLog!!)
-                        Toast.makeText(context, "Activity Deleted", Toast.LENGTH_SHORT).show()
-                        navController.popBackStack()
-                    }) {
-                        Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.Red)
-                    }
+                    IconButton(onClick = { navController.navigate("add_activity?activityId=${activityId}") }) { Icon(Icons.Default.Edit, contentDescription = "Edit", tint = BluePrimary) }
+                    IconButton(onClick = { viewModel.deleteActivity(activityLog!!); Toast.makeText(context, "Activity Deleted", Toast.LENGTH_SHORT).show(); navController.popBackStack() }) { Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.Red) }
                 }
             }
         }
 
         Spacer(Modifier.height(24.dp))
-
         if (activityLog != null) {
             val log = activityLog!!
+            val isFood = log.type == "food"
+            val calorieLabel = if (isFood) "Calories Gained" else "Calories Burned"
 
-            Card(
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant), // Adapted
-                shape = RoundedCornerShape(16.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
+            Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant), shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(
-                        imageVector = when (log.type) {
-                            "steps" -> Icons.Default.DirectionsWalk
-                            "workout" -> Icons.Default.FitnessCenter
-                            else -> Icons.Default.Restaurant
-                        },
-                        contentDescription = null, modifier = Modifier.size(64.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Icon(imageVector = when (log.type) { "steps" -> Icons.Default.DirectionsWalk; "workout" -> Icons.Default.FitnessCenter; else -> Icons.Default.Restaurant }, contentDescription = null, modifier = Modifier.size(64.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     Spacer(Modifier.height(16.dp))
-                    Text(
-                        text = "${log.value} ${if (log.type == "steps") "Steps" else if (log.type == "workout") "Mins" else "Kcal"}",
-                        fontSize = 32.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Text(text = "${log.value} ${if (log.type == "steps") "Steps" else if (log.type == "workout") "Mins" else "Qty"}", fontSize = 32.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Text(text = log.type.uppercase(), color = Color.Gray, fontWeight = FontWeight.SemiBold)
                 }
             }
-
             Spacer(Modifier.height(24.dp))
             Text("Details", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
             Spacer(Modifier.height(12.dp))
-
             val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
             dateFormat.timeZone = TimeZone.getTimeZone("Asia/Kuala_Lumpur")
             DetailRow(label = "Date", value = dateFormat.format(Date(log.date)))
             Divider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 1.dp, modifier = Modifier.padding(vertical = 12.dp))
-
-            DetailRow(label = "Calories Burned", value = "${log.calories} kcal")
+            DetailRow(label = calorieLabel, value = "${log.calories} kcal")
             Divider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 1.dp, modifier = Modifier.padding(vertical = 12.dp))
-
             DetailRow(label = "Notes", value = log.notes.ifEmpty { "No notes provided" })
-        } else {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
-        }
+        } else { Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() } }
     }
 }
 
@@ -1268,18 +984,13 @@ fun ProfileTextField(label: String, value: String, onValueChange: (String) -> Un
         Text(label, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.Gray)
         Spacer(Modifier.height(4.dp))
         TextField(
-            value = value,
-            onValueChange = onValueChange,
+            value = value, onValueChange = onValueChange,
             keyboardOptions = if (isNumber) KeyboardOptions(keyboardType = KeyboardType.Number) else KeyboardOptions.Default,
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(8.dp),
+            modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(8.dp),
             colors = TextFieldDefaults.colors(
-                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                focusedContainerColor = MaterialTheme.colorScheme.surface,
-                unfocusedIndicatorColor = Color.Transparent,
-                focusedIndicatorColor = Color.Transparent,
-                focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+                unfocusedContainerColor = MaterialTheme.colorScheme.surface, focusedContainerColor = MaterialTheme.colorScheme.surface,
+                unfocusedIndicatorColor = Color.Transparent, focusedIndicatorColor = Color.Transparent,
+                focusedTextColor = MaterialTheme.colorScheme.onSurface, unfocusedTextColor = MaterialTheme.colorScheme.onSurface
             )
         )
     }
@@ -1309,7 +1020,6 @@ fun ModernStatCard(title: String, current: Int, total: Int, unit: String, icon: 
             }
             Spacer(Modifier.height(12.dp))
 
-            // Animation Logic
             var progressState by remember { mutableFloatStateOf(0f) }
             val animatedProgress by animateFloatAsState(
                 targetValue = progressState,
@@ -1317,9 +1027,13 @@ fun ModernStatCard(title: String, current: Int, total: Int, unit: String, icon: 
                 label = "Progress Bar Animation"
             )
 
-            // Trigger animation on composition
+            // NaN FIX APPLIED HERE
             LaunchedEffect(current, total) {
-                progressState = (current.toFloat() / total.toFloat()).coerceIn(0f, 1f)
+                progressState = if (total > 0) {
+                    (current.toFloat() / total.toFloat()).coerceIn(0f, 1f)
+                } else {
+                    0f
+                }
             }
 
             Box(modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp)).background(MaterialTheme.colorScheme.surfaceVariant)) {
@@ -1333,11 +1047,14 @@ fun ModernStatCard(title: String, current: Int, total: Int, unit: String, icon: 
 
 @Composable
 fun ModernActivityItem(log: ActivityLog, onClick: () -> Unit) {
+    // Determine icon and color based on type
     val (icon, bg, tint) = when(log.type) {
         "steps" -> Triple(Icons.Default.DirectionsWalk, BlueBackground, BluePrimary)
         "workout" -> Triple(Icons.Default.FitnessCenter, OrangeBackground, OrangePrimary)
         else -> Triple(Icons.Default.Restaurant, GreenBackground, GreenPrimary)
     }
+
+    val isFood = log.type == "food"
 
     val dateFormat = SimpleDateFormat("MMM d, yyyy", Locale.getDefault())
     dateFormat.timeZone = TimeZone.getTimeZone("Asia/Kuala_Lumpur")
@@ -1361,8 +1078,11 @@ fun ModernActivityItem(log: ActivityLog, onClick: () -> Unit) {
             Column(horizontalAlignment = Alignment.End) {
                 val unit = if(log.type == "steps") "steps" else if(log.type == "workout") "mins" else "kcal"
                 Text("${log.value} $unit", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
-                if (log.calories > 0 && log.type != "food") {
-                    Text("${log.calories} kcal", fontSize = 12.sp, color = OrangePrimary)
+                if (log.calories > 0) {
+                    // Show + for intake, - (or just plain) for burn if desired, but here just color diff
+                    val sign = if (isFood) "+" else ""
+                    val calColor = if (isFood) GreenPrimary else OrangePrimary
+                    Text("$sign${log.calories} kcal", fontSize = 12.sp, color = calColor)
                 }
             }
         }
