@@ -41,6 +41,19 @@ class SmartFitViewModel(application: Application) : AndroidViewModel(application
     private val STEP_GOAL_KEY = stringPreferencesKey("step_goal")
     private val CALORIE_GOAL_KEY = stringPreferencesKey("calorie_goal")
 
+    // --- NEW ADDED: Email & Password Keys ---
+    private val EMAIL_KEY = stringPreferencesKey("user_email")
+    private val PASSWORD_KEY = stringPreferencesKey("user_password")
+
+    // ... existing flows ...
+
+    // --- NEW ADDED: Expose Email & Password for Login Check ---
+    val userEmail = context.dataStore.data.map { it[EMAIL_KEY] ?: "" }
+        .stateIn(viewModelScope, SharingStarted.Lazily, "")
+
+    val userPassword = context.dataStore.data.map { it[PASSWORD_KEY] ?: "" }
+        .stateIn(viewModelScope, SharingStarted.Lazily, "")
+
     // Exposing flows for UI to observe
     val userName = context.dataStore.data.map { it[USER_NAME_KEY] ?: "Fitness Enthusiast" }
         .stateIn(viewModelScope, SharingStarted.Lazily, "Fitness Enthusiast")
@@ -105,6 +118,15 @@ class SmartFitViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
+    fun saveUserCredentials(email: String, pass: String) {
+        viewModelScope.launch {
+            context.dataStore.edit { prefs ->
+                prefs[EMAIL_KEY] = email
+                prefs[PASSWORD_KEY] = pass
+            }
+        }
+    }
+
     fun clearAllData() {
         viewModelScope.launch {
             dao.clearAll()
@@ -127,6 +149,7 @@ class SmartFitViewModel(application: Application) : AndroidViewModel(application
             }
         }
     }
+
 
     // Save Goals from Profile
     fun saveGoals(steps: String, calories: String) {

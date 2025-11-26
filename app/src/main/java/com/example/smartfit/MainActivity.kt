@@ -90,8 +90,17 @@ fun SmartFitApp() {
 
 @Composable
 fun LoginScreen(navController: NavController) {
+
+    val viewModel: SmartFitViewModel = viewModel()
+    val context = LocalContext.current
+
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    // 1. Get the stored credentials from ViewModel
+    val storedEmail by viewModel.userEmail.collectAsState()
+    val storedPassword by viewModel.userPassword.collectAsState()
 
     Column(
         modifier = Modifier
@@ -102,25 +111,22 @@ fun LoginScreen(navController: NavController) {
         verticalArrangement = Arrangement.Center
     ) {
         Box(
-            modifier = Modifier
-                .size(80.dp)
-                .background(Color(0xFF111827), RoundedCornerShape(20.dp)),
+            modifier = Modifier.size(80.dp).background(Color(0xFF111827), RoundedCornerShape(20.dp)),
             contentAlignment = Alignment.Center
         ) {
             Text("SF", color = Color.White, fontSize = 32.sp, fontWeight = FontWeight.Bold)
         }
-
         Spacer(Modifier.height(32.dp))
-
         Text("Welcome Back", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = Color(0xFF111827))
         Text("Sign in to continue", color = Color.Gray)
-
         Spacer(Modifier.height(32.dp))
 
+        // Input Fields
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
             label = { Text("Email") },
+            isError = errorMessage != null && (email.isBlank() || errorMessage!!.contains("Email") || errorMessage!!.contains("account")),
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
             singleLine = true
@@ -132,16 +138,52 @@ fun LoginScreen(navController: NavController) {
             value = password,
             onValueChange = { password = it },
             label = { Text("Password") },
+            isError = errorMessage != null && (password.isBlank() || errorMessage!!.contains("Password")),
             visualTransformation = PasswordVisualTransformation(),
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
             singleLine = true
         )
 
+        // Error Message Display
+        if (errorMessage != null) {
+            Spacer(Modifier.height(8.dp))
+            Text(errorMessage!!, color = Color.Red, fontSize = 12.sp)
+        }
+
         Spacer(Modifier.height(32.dp))
 
+        // Login Button
         Button(
-            onClick = { navController.navigate("home") { popUpTo("login") { inclusive = true } } },
+            onClick = {
+
+                if (email.isBlank() && password.isBlank()) {
+                    errorMessage = "Please enter email and password!"
+                }
+                else if (email.isBlank()) {
+                    errorMessage = "Email is required!"
+                }
+                else if (password.isBlank()) {
+                    errorMessage = "Password is required!"
+                }
+                else if (!email.contains("@")) {
+                    errorMessage = "Invalid Email Format"
+                }
+
+                else if (storedEmail.isEmpty() || email != storedEmail) {
+                    errorMessage = "Email not found. Please register first."
+                }
+
+                else if (password != storedPassword) {
+                    errorMessage = "Incorrect Password!"
+                }
+                // 4. 登录成功
+                else {
+                    errorMessage = null
+                    Toast.makeText(context, "Welcome back to SmartFit!", Toast.LENGTH_SHORT).show()
+                    navController.navigate("home") { popUpTo("login") { inclusive = true } }
+                }
+            },
             modifier = Modifier.fillMaxWidth().height(50.dp),
             shape = RoundedCornerShape(12.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF111827))
@@ -151,6 +193,7 @@ fun LoginScreen(navController: NavController) {
 
         Spacer(Modifier.height(16.dp))
 
+        // ... (Register Link Code remains same) ...
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text("Don't have an account? ", color = Color.Gray)
             Text(
@@ -165,10 +208,14 @@ fun LoginScreen(navController: NavController) {
 
 @Composable
 fun RegisterScreen(navController: NavController, viewModel: SmartFitViewModel) {
+    val context = LocalContext.current
+
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    val storedEmail by viewModel.userEmail.collectAsState()
 
     Column(
         modifier = Modifier
@@ -223,23 +270,21 @@ fun RegisterScreen(navController: NavController, viewModel: SmartFitViewModel) {
         }
 
         Spacer(Modifier.height(32.dp))
-
         Button(
             onClick = {
-
                 var emptyCount = 0
                 if (name.isBlank()) emptyCount++
                 if (email.isBlank()) emptyCount++
                 if (password.isBlank()) emptyCount++
 
+
                 if (emptyCount == 3) {
-                    errorMessage = "All fields are required!" // 3个都空
+                    errorMessage = "All fields are required!"
                 }
                 else if (emptyCount == 2) {
-                    errorMessage = "Please fill in the two missing fields!" // 你的新需求：2个空
+                    errorMessage = "Please fill in the two missing fields!"
                 }
                 else if (emptyCount == 1) {
-
                     if (name.isBlank()) errorMessage = "Full name is required!"
                     else if (email.isBlank()) errorMessage = "Email is required!"
                     else errorMessage = "Password is required!"
@@ -248,12 +293,22 @@ fun RegisterScreen(navController: NavController, viewModel: SmartFitViewModel) {
                 else if (!email.contains("@")) {
                     errorMessage = "Invalid Email Format"
                 }
+                else if (email == storedEmail) {
+                    errorMessage = "This email is already registered! Please Log In."
+                }
                 else if (password.length < 8) {
                     errorMessage = "Password must be at least 8 characters"
                 }
                 else {
+                    // 清除错误信息（可选，但推荐）
                     errorMessage = null
+
+                    viewModel.clearAllData()
                     viewModel.saveUserProfile(name, "", "", "")
+                    viewModel.saveUserCredentials(email, password)
+
+                    Toast.makeText(context, "Welcome to SmartFit App! Let's get started.", Toast.LENGTH_LONG).show()
+
                     navController.navigate("home") { popUpTo("login") { inclusive = true } }
                 }
             },
