@@ -271,11 +271,28 @@ class SmartFitViewModel(application: Application) : AndroidViewModel(application
     fun fetchTip() {
         viewModelScope.launch {
             try {
-                // Call the API defined in SmartFitNetwork.kt
-                val response = RetrofitClient.api.getRandomQuote()
-                _fitnessTip.value = "\"${response.quote}\" - ${response.author}"
+                // 1. Randomize the type of exercise we ask for
+                val type = listOf("cardio", "stretching", "strength", "plyometrics").random()
+
+                // 2. Call the new Exercises API
+                val responseList = RetrofitClient.api.getExercises(type)
+
+                if (responseList.isNotEmpty()) {
+                    // 3. Pick a random exercise from the result list
+                    val exercise = responseList.random()
+
+                    // 4. Format it nicely for the UI
+                    _fitnessTip.value = "Daily Challenge (${exercise.difficulty}):\n\n" +
+                            "★ ${exercise.name.uppercase()}\n\n" +
+                            exercise.instructions
+                } else {
+                    _fitnessTip.value = tipsList.random()
+                }
+
+                android.util.Log.d("SmartFitAPI", "Success: ${_fitnessTip.value}")
+
             } catch (e: Exception) {
-                // Fallback to local list if API fails (e.g. no internet)
+                android.util.Log.e("SmartFitAPI", "API Error: ${e.message}")
                 _fitnessTip.value = tipsList.random()
             }
         }
