@@ -32,8 +32,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import androidx.navigation.NavType
 import androidx.navigation.compose.*
-import com.example.smartfit.ui.theme.* // Import your colors
+import androidx.navigation.navArgument
+import com.example.smartfit.ui.theme.* // Make sure this import is correct for your project
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -58,8 +60,12 @@ fun SmartFitApp() {
         val navBackStackEntry by navController.currentBackStackEntryAsState()
         val currentRoute = navBackStackEntry?.destination?.route
 
-        // Hide BottomBar on Login and Register screens
-        val showBottomBar = currentRoute !in listOf("login", "register", "add_activity")
+        // Hide BottomBar on Login, Register, Add Activity and Detail screens
+        val showBottomBar = currentRoute !in listOf(
+            "login",
+            "register",
+            "add_activity"
+        ) && currentRoute?.startsWith("activity_detail") != true
 
         Scaffold(
             containerColor = if (isDark) Color(0xFF111827) else Color(0xFFF3F4F6),
@@ -79,8 +85,19 @@ fun SmartFitApp() {
                 composable("home") { HomeScreen(navController, viewModel) }
                 composable("activities") { ActivitiesScreen(navController, viewModel) }
                 composable("summary") { SummaryScreen(viewModel) }
-                composable("profile") { ProfileScreen(navController, viewModel) } // Pass navController for Logout
+                composable("profile") { ProfileScreen(navController, viewModel) }
                 composable("add_activity") { AddActivityScreen(navController, viewModel) }
+
+                // --- 修复的部分：详情页路由 ---
+                composable(
+                    "activity_detail/{activityId}",
+                    arguments = listOf(navArgument("activityId") { type = NavType.IntType })
+                ) { backStackEntry ->
+                    val activityId = backStackEntry.arguments?.getInt("activityId")
+                    if (activityId != null) {
+                        ActivityDetailScreen(navController, viewModel, activityId)
+                    }
+                }
             }
         }
     }
@@ -90,7 +107,6 @@ fun SmartFitApp() {
 
 @Composable
 fun LoginScreen(navController: NavController) {
-
     val viewModel: SmartFitViewModel = viewModel()
     val context = LocalContext.current
 
@@ -98,7 +114,7 @@ fun LoginScreen(navController: NavController) {
     var password by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
-    // 1. Get the stored credentials from ViewModel
+    // Get the stored credentials from ViewModel
     val storedEmail by viewModel.userEmail.collectAsState()
     val storedPassword by viewModel.userPassword.collectAsState()
 
@@ -121,7 +137,6 @@ fun LoginScreen(navController: NavController) {
         Text("Sign in to continue", color = Color.Gray)
         Spacer(Modifier.height(32.dp))
 
-        // Input Fields
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
@@ -145,7 +160,6 @@ fun LoginScreen(navController: NavController) {
             singleLine = true
         )
 
-        // Error Message Display
         if (errorMessage != null) {
             Spacer(Modifier.height(8.dp))
             Text(errorMessage!!, color = Color.Red, fontSize = 12.sp)
@@ -153,32 +167,21 @@ fun LoginScreen(navController: NavController) {
 
         Spacer(Modifier.height(32.dp))
 
-        // Login Button
         Button(
             onClick = {
-
                 if (email.isBlank() && password.isBlank()) {
                     errorMessage = "Please enter email and password!"
-                }
-                else if (email.isBlank()) {
+                } else if (email.isBlank()) {
                     errorMessage = "Email is required!"
-                }
-                else if (password.isBlank()) {
+                } else if (password.isBlank()) {
                     errorMessage = "Password is required!"
-                }
-                else if (!email.contains("@")) {
+                } else if (!email.contains("@")) {
                     errorMessage = "Invalid Email Format"
-                }
-
-                else if (storedEmail.isEmpty() || email != storedEmail) {
+                } else if (storedEmail.isEmpty() || email != storedEmail) {
                     errorMessage = "Email not found. Please register first."
-                }
-
-                else if (password != storedPassword) {
+                } else if (password != storedPassword) {
                     errorMessage = "Incorrect Password!"
-                }
-                // 4. 登录成功
-                else {
+                } else {
                     errorMessage = null
                     Toast.makeText(context, "Welcome back to SmartFit!", Toast.LENGTH_SHORT).show()
                     navController.navigate("home") { popUpTo("login") { inclusive = true } }
@@ -193,7 +196,6 @@ fun LoginScreen(navController: NavController) {
 
         Spacer(Modifier.height(16.dp))
 
-        // ... (Register Link Code remains same) ...
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text("Don't have an account? ", color = Color.Gray)
             Text(
@@ -277,38 +279,26 @@ fun RegisterScreen(navController: NavController, viewModel: SmartFitViewModel) {
                 if (email.isBlank()) emptyCount++
                 if (password.isBlank()) emptyCount++
 
-
                 if (emptyCount == 3) {
                     errorMessage = "All fields are required!"
-                }
-                else if (emptyCount == 2) {
+                } else if (emptyCount == 2) {
                     errorMessage = "Please fill in the two missing fields!"
-                }
-                else if (emptyCount == 1) {
+                } else if (emptyCount == 1) {
                     if (name.isBlank()) errorMessage = "Full name is required!"
                     else if (email.isBlank()) errorMessage = "Email is required!"
                     else errorMessage = "Password is required!"
-                }
-
-                else if (!email.contains("@")) {
+                } else if (!email.contains("@")) {
                     errorMessage = "Invalid Email Format"
-                }
-                else if (email == storedEmail) {
+                } else if (email == storedEmail) {
                     errorMessage = "This email is already registered! Please Log In."
-                }
-                else if (password.length < 8) {
+                } else if (password.length < 8) {
                     errorMessage = "Password must be at least 8 characters"
-                }
-                else {
-                    // 清除错误信息（可选，但推荐）
+                } else {
                     errorMessage = null
-
                     viewModel.clearAllData()
                     viewModel.saveUserProfile(name, "", "", "")
                     viewModel.saveUserCredentials(email, password)
-
                     Toast.makeText(context, "Welcome to SmartFit App! Let's get started.", Toast.LENGTH_LONG).show()
-
                     navController.navigate("home") { popUpTo("login") { inclusive = true } }
                 }
             },
@@ -339,8 +329,6 @@ fun RegisterScreen(navController: NavController, viewModel: SmartFitViewModel) {
 fun HomeScreen(navController: NavController, viewModel: SmartFitViewModel) {
     val activities by viewModel.activities.collectAsState()
     val tip by viewModel.fitnessTip.collectAsState()
-
-    // Data from ViewModel
     val storedName by viewModel.userName.collectAsState()
     val stepGoalString by viewModel.stepGoal.collectAsState()
     val calGoalString by viewModel.calorieGoal.collectAsState()
@@ -353,11 +341,10 @@ fun HomeScreen(navController: NavController, viewModel: SmartFitViewModel) {
         modifier = Modifier.fillMaxSize().padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Header
         item {
             Column(modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)) {
                 Text(
-                    "Welcome back,\n$storedName!", // 1. Using stored name
+                    "Welcome back,\n$storedName!",
                     style = MaterialTheme.typography.headlineMedium.copy(
                         fontWeight = FontWeight.Bold,
                         lineHeight = 32.sp
@@ -380,7 +367,6 @@ fun HomeScreen(navController: NavController, viewModel: SmartFitViewModel) {
             }
         }
 
-        // Progress Cards
         item {
             ModernStatCard(
                 title = "Steps Today",
@@ -405,12 +391,11 @@ fun HomeScreen(navController: NavController, viewModel: SmartFitViewModel) {
             )
         }
 
-        // 1. Added Workout Card below Calories
         item {
             ModernStatCard(
                 title = "Workouts",
                 current = todayWorkouts,
-                total = 1, // Goal could be made dynamic too
+                total = 1,
                 unit = "completed",
                 icon = Icons.Default.FitnessCenter,
                 accentColor = OrangePrimary,
@@ -418,7 +403,6 @@ fun HomeScreen(navController: NavController, viewModel: SmartFitViewModel) {
             )
         }
 
-        // Quick Actions
         item {
             Card(
                 colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -455,7 +439,6 @@ fun HomeScreen(navController: NavController, viewModel: SmartFitViewModel) {
 
                     Spacer(Modifier.height(8.dp))
 
-                    // 1. Added View Summary Button
                     OutlinedButton(
                         onClick = { navController.navigate("summary") },
                         modifier = Modifier.fillMaxWidth().height(50.dp),
@@ -470,7 +453,6 @@ fun HomeScreen(navController: NavController, viewModel: SmartFitViewModel) {
             }
         }
 
-        // Fitness Tip
         item {
             Box(
                 modifier = Modifier
@@ -490,7 +472,6 @@ fun HomeScreen(navController: NavController, viewModel: SmartFitViewModel) {
                             Spacer(Modifier.width(8.dp))
                             Text("Fitness Tip", fontWeight = FontWeight.SemiBold)
                         }
-                        // 1. Functioning Next Tip Button
                         TextButton(onClick = { viewModel.fetchTip() }) {
                             Icon(Icons.Default.Refresh, null, modifier = Modifier.size(16.dp))
                             Spacer(Modifier.width(4.dp))
@@ -546,7 +527,9 @@ fun ActivitiesScreen(navController: NavController, viewModel: SmartFitViewModel)
         } else {
             LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 items(activities) { log ->
-                    ModernActivityItem(log)
+                    ModernActivityItem(log) {
+                        navController.navigate("activity_detail/${log.id}")
+                    }
                 }
             }
         }
@@ -612,9 +595,15 @@ fun AddActivityScreen(navController: NavController, viewModel: SmartFitViewModel
             fontWeight = FontWeight.SemiBold, fontSize = 14.sp
         )
         Spacer(Modifier.height(8.dp))
+
         OutlinedTextField(
             value = value,
-            onValueChange = { value = it },
+            onValueChange = { newValue ->
+                // --- 只允许输入数字 ---
+                if (newValue.all { it.isDigit() }) {
+                    value = newValue
+                }
+            },
             placeholder = { Text("e.g., 10000") },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier.fillMaxWidth(),
@@ -675,7 +664,6 @@ fun AddActivityScreen(navController: NavController, viewModel: SmartFitViewModel
 
 @Composable
 fun SummaryScreen(viewModel: SmartFitViewModel) {
-    // 2. Connected to live data from ViewModel
     val activities by viewModel.activities.collectAsState()
 
     val totalSteps = activities.filter { it.type == "steps" }.sumOf { it.value }
@@ -687,7 +675,6 @@ fun SummaryScreen(viewModel: SmartFitViewModel) {
         Text("Your total fitness progress", color = Color.Gray)
         Spacer(Modifier.height(24.dp))
 
-        // Steps Card
         Card(Modifier.fillMaxWidth().padding(bottom = 8.dp), colors = CardDefaults.cardColors(containerColor = Color.White), shape = RoundedCornerShape(16.dp)) {
             Column(Modifier.padding(16.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -699,7 +686,6 @@ fun SummaryScreen(viewModel: SmartFitViewModel) {
             }
         }
 
-        // Calories Card
         Card(Modifier.fillMaxWidth().padding(bottom = 8.dp), colors = CardDefaults.cardColors(containerColor = Color.White), shape = RoundedCornerShape(16.dp)) {
             Column(Modifier.padding(16.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -711,7 +697,6 @@ fun SummaryScreen(viewModel: SmartFitViewModel) {
             }
         }
 
-        // Workouts Card
         Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = Color.White), shape = RoundedCornerShape(16.dp)) {
             Column(Modifier.padding(16.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -730,7 +715,6 @@ fun ProfileScreen(navController: NavController, viewModel: SmartFitViewModel) {
     val isDark by viewModel.isDarkMode.collectAsState()
     val context = LocalContext.current
 
-    // 3. Connecting inputs to ViewModel state
     val storedName by viewModel.userName.collectAsState()
     val storedWeight by viewModel.userWeight.collectAsState()
     val storedHeight by viewModel.userHeight.collectAsState()
@@ -738,7 +722,6 @@ fun ProfileScreen(navController: NavController, viewModel: SmartFitViewModel) {
     val storedStepGoal by viewModel.stepGoal.collectAsState()
     val storedCalGoal by viewModel.calorieGoal.collectAsState()
 
-    // Local state for editing
     var name by remember { mutableStateOf(storedName) }
     var weight by remember { mutableStateOf(storedWeight) }
     var height by remember { mutableStateOf(storedHeight) }
@@ -747,10 +730,8 @@ fun ProfileScreen(navController: NavController, viewModel: SmartFitViewModel) {
     var stepGoal by remember { mutableStateOf(storedStepGoal) }
     var calorieGoal by remember { mutableStateOf(storedCalGoal) }
 
-    // Keep local state in sync if backing store updates
     LaunchedEffect(storedName) { name = storedName }
     LaunchedEffect(storedWeight) { weight = storedWeight }
-    // ... similar for others if needed, but for edit fields, initializing once or updating on save is usually enough
 
     LazyColumn(
         modifier = Modifier.fillMaxSize().padding(16.dp),
@@ -763,7 +744,6 @@ fun ProfileScreen(navController: NavController, viewModel: SmartFitViewModel) {
             }
         }
 
-        // Personal Info Card
         item {
             Card(
                 colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -792,7 +772,6 @@ fun ProfileScreen(navController: NavController, viewModel: SmartFitViewModel) {
 
                     Button(
                         onClick = {
-                            // 3. Actual Save Logic
                             viewModel.saveUserProfile(name, weight, height, age)
                             Toast.makeText(context, "Changes Saved", Toast.LENGTH_SHORT).show()
                         },
@@ -808,7 +787,6 @@ fun ProfileScreen(navController: NavController, viewModel: SmartFitViewModel) {
             }
         }
 
-        // Daily Goals Card
         item {
             Card(
                 colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -831,7 +809,6 @@ fun ProfileScreen(navController: NavController, viewModel: SmartFitViewModel) {
 
                     Button(
                         onClick = {
-                            // 3. Actual Save Logic
                             viewModel.saveGoals(stepGoal, calorieGoal)
                             Toast.makeText(context, "Goals Saved", Toast.LENGTH_SHORT).show()
                         },
@@ -847,7 +824,6 @@ fun ProfileScreen(navController: NavController, viewModel: SmartFitViewModel) {
             }
         }
 
-        // Appearance Card
         item {
             Card(
                 colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -877,11 +853,9 @@ fun ProfileScreen(navController: NavController, viewModel: SmartFitViewModel) {
             }
         }
 
-        // 3. Removed Data Management, Added Log Out
         item {
             OutlinedButton(
                 onClick = {
-                    // Navigate back to Login
                     navController.navigate("login") {
                         popUpTo("home") { inclusive = true }
                     }
@@ -901,7 +875,91 @@ fun ProfileScreen(navController: NavController, viewModel: SmartFitViewModel) {
     }
 }
 
-// --- HELPER COMPONENTS ---
+// --- NEW ADDED: Activity Detail Screen ---
+@Composable
+fun ActivityDetailScreen(navController: NavController, viewModel: SmartFitViewModel, activityId: Int) {
+    val activityLog by viewModel.getActivity(activityId).collectAsState(initial = null)
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White)
+            .padding(24.dp)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = { navController.popBackStack() }) {
+                Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+            }
+            Spacer(Modifier.width(8.dp))
+            Text("Activity Details", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+        }
+
+        Spacer(Modifier.height(24.dp))
+
+        if (activityLog != null) {
+            val log = activityLog!!
+
+            Card(
+                colors = CardDefaults.cardColors(containerColor = Color(0xFFF3F4F6)),
+                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier.padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Icon(
+                        imageVector = when (log.type) {
+                            "steps" -> Icons.Default.DirectionsWalk
+                            "workout" -> Icons.Default.FitnessCenter
+                            else -> Icons.Default.Restaurant
+                        },
+                        contentDescription = null,
+                        modifier = Modifier.size(64.dp),
+                        tint = Color(0xFF111827)
+                    )
+                    Spacer(Modifier.height(16.dp))
+                    Text(
+                        text = "${log.value} ${if (log.type == "steps") "Steps" else if (log.type == "workout") "Mins" else "Kcal"}",
+                        fontSize = 32.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF111827)
+                    )
+                    Text(
+                        text = log.type.uppercase(),
+                        color = Color.Gray,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(24.dp))
+            Text("Details", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Spacer(Modifier.height(12.dp))
+
+            DetailRow(label = "Date", value = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(Date(log.date)))
+            Divider(color = Color(0xFFE5E7EB), thickness = 1.dp, modifier = Modifier.padding(vertical = 12.dp))
+
+            DetailRow(label = "Calories Burned", value = "${log.calories} kcal")
+            Divider(color = Color(0xFFE5E7EB), thickness = 1.dp, modifier = Modifier.padding(vertical = 12.dp))
+
+            DetailRow(label = "Notes", value = log.notes.ifEmpty { "No notes provided" })
+        } else {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
+        }
+    }
+}
+
+@Composable
+fun DetailRow(label: String, value: String) {
+    Column {
+        Text(label, color = Color.Gray, fontSize = 14.sp)
+        Spacer(Modifier.height(4.dp))
+        Text(value, fontSize = 16.sp, color = Color(0xFF111827))
+    }
+}
 
 @Composable
 fun ProfileTextField(label: String, value: String, onValueChange: (String) -> Unit, isNumber: Boolean = false) {
@@ -975,7 +1033,7 @@ fun ModernStatCard(title: String, current: Int, total: Int, unit: String, icon: 
 }
 
 @Composable
-fun ModernActivityItem(log: ActivityLog) {
+fun ModernActivityItem(log: ActivityLog, onClick: () -> Unit) {
     val (icon, bg, tint) = when(log.type) {
         "steps" -> Triple(Icons.Default.DirectionsWalk, BlueBackground, BluePrimary)
         "workout" -> Triple(Icons.Default.FitnessCenter, OrangeBackground, OrangePrimary)
@@ -983,7 +1041,9 @@ fun ModernActivityItem(log: ActivityLog) {
     }
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
         colors = CardDefaults.cardColors(containerColor = Color.White),
         shape = RoundedCornerShape(12.dp),
         border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFF3F4F6))
