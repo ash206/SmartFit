@@ -25,6 +25,8 @@ interface ActivityDao {
     @Query("SELECT * FROM activity_logs ORDER BY date DESC")
     fun getAllActivities(): Flow<List<ActivityLog>>
 
+    @Query("SELECT * FROM activity_logs WHERE id = :id")
+    fun getActivityById(id: Int): Flow<ActivityLog>
     @Insert
     suspend fun insert(activity: ActivityLog)
 

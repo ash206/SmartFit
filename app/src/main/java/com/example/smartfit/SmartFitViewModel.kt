@@ -149,8 +149,9 @@ class SmartFitViewModel(application: Application) : AndroidViewModel(application
             }
         }
     }
-
-
+    fun getActivity(id: Int): kotlinx.coroutines.flow.Flow<ActivityLog> {
+        return dao.getActivityById(id)
+    }
     // Save Goals from Profile
     fun saveGoals(steps: String, calories: String) {
         viewModelScope.launch {
