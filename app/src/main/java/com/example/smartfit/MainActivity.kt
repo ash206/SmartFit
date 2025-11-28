@@ -118,8 +118,7 @@ fun SmartFitApp() {
     }
 }
 
-// --- AUTH SCREENS ---
-// (LoginScreen and RegisterScreen remain unchanged)
+
 @Composable
 fun LoginScreen(navController: NavController) {
     val viewModel: SmartFitViewModel = viewModel()
@@ -288,7 +287,6 @@ fun RegisterScreen(navController: NavController, viewModel: SmartFitViewModel) {
     }
 }
 
-// --- MAIN APP SCREENS ---
 
 @Composable
 fun HomeScreen(navController: NavController, viewModel: SmartFitViewModel) {
@@ -343,7 +341,6 @@ fun HomeScreen(navController: NavController, viewModel: SmartFitViewModel) {
             )
         }
 
-        // Two Calorie Cards: Burned and Intake
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 Box(Modifier.weight(1f)) {
@@ -493,7 +490,6 @@ fun ActivitiesScreen(navController: NavController, viewModel: SmartFitViewModel)
     }
 }
 
-// AddActivityScreen - largely unchanged logic, just context
 @Composable
 fun AddActivityScreen(navController: NavController, viewModel: SmartFitViewModel, activityId: Int = -1) {
     val context = LocalContext.current
@@ -724,7 +720,6 @@ fun AddActivityScreen(navController: NavController, viewModel: SmartFitViewModel
     }
 }
 
-// --- UPDATED: Summary Screen ---
 @Composable
 fun SummaryScreen(viewModel: SmartFitViewModel) {
     val dailyStats by viewModel.dailySummary.collectAsState()
@@ -743,7 +738,7 @@ fun SummaryScreen(viewModel: SmartFitViewModel) {
     val weekIntake = weeklyStats.caloriesIntake
     val weekWorkouts = weeklyStats.workouts
 
-    // All Time (Calculated here)
+    // All Time
     val totalSteps = activities.filter { it.type == "steps" }.sumOf { it.value }
     val totalBurn = activities.filter { it.type == "steps" || it.type == "workout" }.sumOf { it.calories }
     val totalIntake = activities.filter { it.type == "food" }.sumOf { it.calories }
@@ -1027,7 +1022,6 @@ fun ModernStatCard(title: String, current: Int, total: Int, unit: String, icon: 
                 label = "Progress Bar Animation"
             )
 
-            // NaN FIX APPLIED HERE
             LaunchedEffect(current, total) {
                 progressState = if (total > 0) {
                     (current.toFloat() / total.toFloat()).coerceIn(0f, 1f)
@@ -1047,7 +1041,6 @@ fun ModernStatCard(title: String, current: Int, total: Int, unit: String, icon: 
 
 @Composable
 fun ModernActivityItem(log: ActivityLog, onClick: () -> Unit) {
-    // Determine icon and color based on type
     val (icon, bg, tint) = when(log.type) {
         "steps" -> Triple(Icons.Default.DirectionsWalk, BlueBackground, BluePrimary)
         "workout" -> Triple(Icons.Default.FitnessCenter, OrangeBackground, OrangePrimary)
@@ -1079,7 +1072,6 @@ fun ModernActivityItem(log: ActivityLog, onClick: () -> Unit) {
                 val unit = if(log.type == "steps") "steps" else if(log.type == "workout") "mins" else "kcal"
                 Text("${log.value} $unit", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
                 if (log.calories > 0) {
-                    // Show + for intake, - (or just plain) for burn if desired, but here just color diff
                     val sign = if (isFood) "+" else ""
                     val calColor = if (isFood) GreenPrimary else OrangePrimary
                     Text("$sign${log.calories} kcal", fontSize = 12.sp, color = calColor)

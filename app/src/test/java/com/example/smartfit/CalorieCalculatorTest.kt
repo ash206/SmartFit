@@ -23,7 +23,7 @@ class CalorieCalculatorTest {
     fun calculate_Workout_Running_ReturnsHighCalorieBurn() {
         val result = CalorieCalculator.calculate(
             type = "workout",
-            value = 30, // 30 mins
+            value = 30,
             notes = "Type: Running",
             userWeightKg = 80.0,
             userHeightCm = 180.0
@@ -44,7 +44,7 @@ class CalorieCalculatorTest {
         assertEquals(189, result)
     }
 
-    // Test 4: Verify the food input from user
+    // Test 4: Verify the food input
     @Test
     fun calculate_Food_ReturnsInputDirectly() {
         val result = CalorieCalculator.calculate(

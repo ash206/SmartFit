@@ -12,10 +12,10 @@ import kotlinx.coroutines.flow.map
 @Entity(tableName = "activity_logs")
 data class ActivityLog(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
-    val type: String, // "steps", "workout", "food"
+    val type: String,
     val value: Int,
     val calories: Int,
-    val date: Long, // timestamp
+    val date: Long,
     val notes: String
 )
 
@@ -24,14 +24,12 @@ interface ActivityDao {
     @Query("SELECT * FROM activity_logs ORDER BY date DESC")
     fun getAllActivities(): Flow<List<ActivityLog>>
 
-    // 根据 ID 获取单个活动详情
     @Query("SELECT * FROM activity_logs WHERE id = :id")
-    fun getActivityById(id: Int): Flow<ActivityLog?> // 允许为空，防止删除后crash
+    fun getActivityById(id: Int): Flow<ActivityLog?>
 
     @Insert
     suspend fun insert(activity: ActivityLog)
 
-    // --- 新增：更新和删除方法 ---
     @Update
     suspend fun update(activity: ActivityLog)
 
@@ -62,7 +60,6 @@ abstract class AppDatabase : RoomDatabase() {
     }
 }
 
-// --- DATASTORE (Settings) ---
 
 val Context.dataStore by preferencesDataStore(name = "settings")
 
