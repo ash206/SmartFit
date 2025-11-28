@@ -1,5 +1,6 @@
 package com.example.smartfit
 
+import android.util.Log
 import android.app.Application
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -23,6 +24,7 @@ data class SummaryStats(
 )
 
 class SmartFitViewModel(application: Application) : AndroidViewModel(application) {
+    private val TAG = "SmartFitDB" // Define a tag
 
     private val db = AppDatabase.getDatabase(application)
     private val dao = db.activityDao()
@@ -126,14 +128,6 @@ class SmartFitViewModel(application: Application) : AndroidViewModel(application
     private val _fitnessTip = MutableStateFlow("Loading tip...")
     val fitnessTip = _fitnessTip.asStateFlow()
 
-    private val tipsList = listOf(
-        "Aim for at least 30 minutes of moderate exercise most days.",
-        "Drink water before every meal to stay hydrated.",
-        "Sleep is crucial for muscle recovery.",
-        "Consistency is key. Even a 10-minute walk helps.",
-        "Include protein in every meal to support muscle repair.",
-        "Stretch after workouts to improve flexibility."
-    )
 
     // Food Database
     val foodDatabase = mapOf(
@@ -165,6 +159,7 @@ class SmartFitViewModel(application: Application) : AndroidViewModel(application
 
     fun addActivity(type: String, value: Int, notes: String, date: Long = System.currentTimeMillis()) {
         viewModelScope.launch {
+            Log.d(TAG, "Attempting to insert activity: Type=$type, Value=$value") // [Log]
             val cals = calculateCalories(type, value, notes)
             val log = ActivityLog(
                 type = type,
@@ -174,12 +169,19 @@ class SmartFitViewModel(application: Application) : AndroidViewModel(application
                 notes = notes
             )
             dao.insert(log)
+            Log.d(TAG, "Successfully inserted activity. Calculated Calories: $cals") // [Log]
         }
     }
 
     fun updateActivity(id: Int, type: String, value: Int, notes: String, date: Long) {
         viewModelScope.launch {
+            // Log 1: Start of operation
+            Log.d(TAG, "Operation: UPDATE | ID: $id | NewValue: $value | NewNotes: $notes")
+
+            // 1. Calculate calories
             val cals = calculateCalories(type, value, notes)
+
+            // 2. Create the ActivityLog object (This defines 'log')
             val log = ActivityLog(
                 id = id,
                 type = type,
@@ -188,12 +190,18 @@ class SmartFitViewModel(application: Application) : AndroidViewModel(application
                 date = date,
                 notes = notes
             )
+
+            // 3. Now 'log' exists, so this line will work
             dao.update(log)
+
+            // Log 2: End of operation
+            Log.d(TAG, "Update complete for ID: $id")
         }
     }
 
     fun deleteActivity(activity: ActivityLog) {
         viewModelScope.launch {
+            Log.d(TAG, "Deleting activity ID: ${activity.id}") // [Log]
             dao.delete(activity)
         }
     }
@@ -271,31 +279,42 @@ class SmartFitViewModel(application: Application) : AndroidViewModel(application
     fun fetchTip() {
         viewModelScope.launch {
             try {
-                // 1. Randomize the type of exercise we ask for
                 val type = listOf("cardio", "stretching", "strength", "plyometrics").random()
 
-                // 2. Call the new Exercises API
+                // Log the attempt
+                Log.d(TAG, "Fetching tip from API for type: $type")
+
                 val responseList = RetrofitClient.api.getExercises(type)
 
                 if (responseList.isNotEmpty()) {
-                    // 3. Pick a random exercise from the result list
                     val exercise = responseList.random()
-
-                    // 4. Format it nicely for the UI
                     _fitnessTip.value = "Daily Challenge (${exercise.difficulty}):\n\n" +
                             "★ ${exercise.name.uppercase()}\n\n" +
                             exercise.instructions
                 } else {
-                    _fitnessTip.value = tipsList.random()
+                    // API returned empty list
+                    Log.w(TAG, "API returned empty list, using fallback.")
+                    useFallbackTip()
                 }
-
-                android.util.Log.d("SmartFitAPI", "Success: ${_fitnessTip.value}")
-
             } catch (e: Exception) {
-                android.util.Log.e("SmartFitAPI", "API Error: ${e.message}")
-                _fitnessTip.value = tipsList.random()
+                // Log the specific error (e.g., HTTP 400 Service Down)
+                Log.e(TAG, "API Failed: ${e.message}. Switching to offline mode.")
+                useFallbackTip()
             }
         }
+    }
+
+    // Add this helper function for offline data
+    private fun useFallbackTip() {
+        val tipsList = listOf(
+            "Aim for at least 30 minutes of moderate exercise most days.",
+            "Drink water before every meal to stay hydrated.",
+            "Sleep is crucial for muscle recovery.",
+            "Consistency is key. Even a 10-minute walk helps.",
+            "Include protein in every meal to support muscle repair.",
+            "Stretch after workouts to improve flexibility."
+        )
+        _fitnessTip.value = tipsList.random()
     }
 
     fun saveUserProfile(name: String, weight: String, height: String, age: String) {
